@@ -25,7 +25,8 @@ pipeline {
                 script {
                     bat """
                         @echo off
-                        FOR /F "tokens=*" %%i IN ('docker ps -q -f "name=%CONTAINER_NAME%"') DO (
+                        FOR /F "tokens=*" %%i IN ('docker ps -q -f "name=${CONTAINER_NAME}"') DO (
+                            echo Stopping container %%i
                             docker stop %%i
                             docker rm %%i
                         )
