@@ -27,12 +27,18 @@ pipeline {
                         @echo off
                         echo Checking for any container using port %PORT%...
 
-                        :: Check for containers using port 5000
-                        for /f "tokens=*" %%i in ('docker ps -q --filter "publish=%PORT%"') do (
-                            echo Stopping container %%i using port %PORT%
+                        :: List all running containers and filter by port
+                        docker ps --filter "publish=%PORT%" --format "{{.ID}}" > containers_using_port.txt
+
+                        :: If the file has any containers, stop and remove them
+                        for /f "tokens=*" %%i in (containers_using_port.txt) do (
+                            echo Stopping and removing container %%i
                             docker stop %%i
                             docker rm %%i
                         )
+
+                        :: Clean up the temporary file
+                        del containers_using_port.txt
                     """
                 }
             }
