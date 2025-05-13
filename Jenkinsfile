@@ -34,7 +34,7 @@ pipeline {
                             docker rm %%i
                         )
 
-                        :: If no container, check if port 5000 is occupied by a process
+                        :: Check if port 5000 is occupied by a process (netstat and taskkill)
                         FOR /F "tokens=5" %%i IN ('netstat -ano ^| findstr :%PORT%') DO (
                             echo Killing process %%i using port %PORT%
                             taskkill /PID %%i /F
