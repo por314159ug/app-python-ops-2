@@ -23,9 +23,12 @@ pipeline {
         stage('Stop Existing Container (if any)') {
             steps {
                 script {
-                    // Attempt to stop and remove the container if it exists
-                    sh """
-                        docker ps -q --filter "name=${CONTAINER_NAME}" | grep -q . && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME} || echo "No existing container to stop"
+                    bat """
+                        @echo off
+                        FOR /F "tokens=*" %%i IN ('docker ps -q -f "name=%CONTAINER_NAME%"') DO (
+                            docker stop %%i
+                            docker rm %%i
+                        )
                     """
                 }
             }
@@ -34,7 +37,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    docker.image("${env.DOCKER_IMAGE}:latest").run("-d --name ${CONTAINER_NAME} -p ${PORT}:${PORT}")
+                    docker.image("${env.DOCKER_IMAGE}:latest").run("--name ${env.CONTAINER_NAME} -p ${env.PORT}:${env.PORT} -d")
                 }
             }
         }
