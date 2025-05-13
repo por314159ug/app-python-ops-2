@@ -20,15 +20,24 @@ pipeline {
             }
         }
 
-        stage('Stop Existing Container (if any)') {
+        stage('Stop Existing Container or Process Using Port 5000') {
             steps {
                 script {
                     bat """
                         @echo off
-                        FOR /F "tokens=*" %%i IN ('docker ps -q -f "name=${CONTAINER_NAME}"') DO (
-                            echo Stopping container %%i
+                        echo Checking for any process or container using port %PORT%...
+
+                        :: Check if any container is using port 5000
+                        FOR /F "tokens=*" %%i IN ('docker ps -q --filter "publish=%PORT%"') DO (
+                            echo Stopping container %%i using port %PORT%
                             docker stop %%i
                             docker rm %%i
+                        )
+
+                        :: If no container, check if port 5000 is occupied by a process
+                        FOR /F "tokens=5" %%i IN ('netstat -ano ^| findstr :%PORT%') DO (
+                            echo Killing process %%i using port %PORT%
+                            taskkill /PID %%i /F
                         )
                     """
                 }
