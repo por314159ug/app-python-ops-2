@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/por314159ug/app-python-1.git', branch: 'main'
+                git url: 'https://github.com/por314159ug/v0-python-application.git', branch: 'main'
             }
         }
 
@@ -20,26 +20,17 @@ pipeline {
             }
         }
 
-        stage('Stop Existing Container Using Port 5000') {
+        stage('Cleanup Existing Container') {
             steps {
                 script {
-                    bat """
-                        @echo off
-                        echo Checking for any container using port %PORT%...
-
-                        :: List all running containers and filter by port
-                        docker ps --filter "publish=%PORT%" --format "{{.ID}}" > containers_using_port.txt
-
-                        :: If the file has any containers, stop and remove them
-                        for /f "tokens=*" %%i in (containers_using_port.txt) do (
-                            echo Stopping and removing container %%i
-                            docker stop %%i
-                            docker rm %%i
-                        )
-
-                        :: Clean up the temporary file
-                        del containers_using_port.txt
-                    """
+                    // Stop and remove any existing container using port 5000
+                    powershell '''
+                        $containers = docker ps -q --filter "publish=5000"
+                        if ($containers) {
+                            docker stop $containers
+                            docker rm $containers
+                        }
+                    '''
                 }
             }
         }
